@@ -1,9 +1,20 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql+asyncpg://collie:collie_secret@localhost:5432/collie_db"
+
+    @model_validator(mode="after")
+    def fix_database_url(self) -> "Settings":
+        url = self.database_url
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and "+asyncpg" not in url:
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        self.database_url = url
+        return self
 
     # JWT
     jwt_secret_key: str = "change-me-in-production"
