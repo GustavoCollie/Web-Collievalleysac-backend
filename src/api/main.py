@@ -20,7 +20,12 @@ from api.routers import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    # Startup
+    # Startup: run seed to ensure admin user and initial data exist
+    from infrastructure.persistence.seed import seed
+    try:
+        await seed()
+    except Exception as e:
+        print(f"[SEED] Warning: seed failed: {e}")
     yield
     # Shutdown
 
